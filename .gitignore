@@ -22,9 +22,20 @@ dist-electron/
 dist-electron-apps/
 **/dist-electron-apps/
 
+# Coverage reports
+coverage/
+**/coverage/
+
+# Test reports
+e2e-selenium-tests/reports/
+
+
 # Large Datasets / JSONL files (GitHub has a 100MB file limit)
 *.jsonl
 **/*.jsonl
+scripts/cloud-40k.json
+scripts/fine_tuning_dataset.jsonl
+scripts/fine_tuning_dataset_clean.jsonl
 
 # Environment files
 .env
