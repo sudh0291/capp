@@ -11,19 +11,34 @@ export class UsersService {
   async bulkImport(students: any[], defaultPassword: string) {
     // Cost 10 ≈ 70ms — 4× faster than cost 12, still OWASP-recommended minimum
     const hashed = await bcrypt.hash(defaultPassword, 10);
-    let imported = 0, skipped = 0;
+    let imported = 0,
+      skipped = 0;
     const errors: string[] = [];
 
     for (const s of students) {
       try {
-        const exists = await this.usersRepo.findOne({ where: { regNumber: s.regNumber } });
-        if (exists) { skipped++; continue; }
-        await this.usersRepo.save(this.usersRepo.create({
-          regNumber: s.regNumber, name: s.name, department: s.department,
-          year: s.year, password: hashed, mustChangePassword: true, role: 'student' as any,
-        }));
+        const exists = await this.usersRepo.findOne({
+          where: { regNumber: s.regNumber },
+        });
+        if (exists) {
+          skipped++;
+          continue;
+        }
+        await this.usersRepo.save(
+          this.usersRepo.create({
+            regNumber: s.regNumber,
+            name: s.name,
+            department: s.department,
+            year: s.year,
+            password: hashed,
+            mustChangePassword: true,
+            role: 'student' as any,
+          }),
+        );
         imported++;
-      } catch (err: any) { errors.push(`${s.regNumber}: ${err.message}`); }
+      } catch (err: any) {
+        errors.push(`${s.regNumber}: ${err.message}`);
+      }
     }
     return { imported, skipped, errors };
   }
@@ -37,7 +52,10 @@ export class UsersService {
   }
 
   async updatePassword(userId: string, newHashedPassword: string) {
-    await this.usersRepo.update(userId, { password: newHashedPassword, mustChangePassword: false });
+    await this.usersRepo.update(userId, {
+      password: newHashedPassword,
+      mustChangePassword: false,
+    });
   }
 
   async updateProgressStats(userId: string, passed: boolean, score: number) {
@@ -72,13 +90,13 @@ export class UsersService {
     if (!updated) return;
 
     const newAvgScore =
-      ((updated.averageScore * (updated.totalAssessments - 1)) + score) /
+      (updated.averageScore * (updated.totalAssessments - 1) + score) /
       updated.totalAssessments;
 
     await this.usersRepo.update(userId, {
-      averageScore:       Math.round(newAvgScore * 100) / 100,
-      currentStreak:      newStreak,
-      longestStreak:      Math.max(updated.longestStreak, newStreak),
+      averageScore: Math.round(newAvgScore * 100) / 100,
+      currentStreak: newStreak,
+      longestStreak: Math.max(updated.longestStreak, newStreak),
       lastSubmissionDate: new Date(),
     });
   }

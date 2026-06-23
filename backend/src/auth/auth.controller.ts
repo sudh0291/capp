@@ -13,8 +13,15 @@ export class AuthController {
 
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
-  async changePassword(@Request() req: any, @Body() body: { oldPassword: string; newPassword: string }) {
-    await this.authService.changePassword(req.user.sub, body.oldPassword, body.newPassword);
+  async changePassword(
+    @Request() req: any,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    await this.authService.changePassword(
+      req.user.sub,
+      body.oldPassword,
+      body.newPassword,
+    );
     return { message: 'Password changed successfully' };
   }
 }

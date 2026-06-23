@@ -10,7 +10,7 @@ import { Submission } from '../submissions/submission.entity';
 
 /**
  * ExecutionModule owns:
- *  - ExecutionService  (submit/poll Judge0 — used by SubmissionsModule for "Run" button)
+ *  - ExecutionService  (submit to Judge0 — used by SubmissionsModule for "Run" button)
  *  - ExecutionProcessor (Bull worker — runs inside worker containers)
  *
  * The 'execution' queue is registered here so the processor can consume jobs.

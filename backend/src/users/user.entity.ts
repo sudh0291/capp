@@ -1,9 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 export enum UserRole {
   STUDENT = 'student',
   FACULTY = 'faculty',
-  ADMIN   = 'admin',
+  ADMIN = 'admin',
 }
 
 @Entity('users')
@@ -17,7 +23,8 @@ export class User {
   @Column() password: string;
 
   @Column({ default: true }) mustChangePassword: boolean;
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT }) role: UserRole;
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT })
+  role: UserRole;
 
   @Column({ type: 'int', default: 0 }) totalAssessments: number;
   @Column({ type: 'int', default: 0 }) totalPassed: number;

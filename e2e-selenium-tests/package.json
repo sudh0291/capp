@@ -1,0 +1,23 @@
+{
+  "name": "e2e-selenium-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node advanced-test-runner.js",
+    "test:simple": "node test-reports.js",
+    "test:selenium": "node selenium-tests.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "chai": "^6.2.2",
+    "chromedriver": "^150.0.0",
+    "exceljs": "^4.4.0",
+    "mocha": "^11.7.6",
+    "pdfkit": "^0.19.1",
+    "selenium-webdriver": "^4.45.0"
+  }
+}

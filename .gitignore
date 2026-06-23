@@ -38,9 +38,21 @@ dist-electron-apps/
 # Editor directories and files
 .vscode/
 .idea/
+.theia/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Aider files
+.aider*
+.aider.tags.cache.v4/
+
+# Temporary files
+codego.zip
+demo-load-balancer.js
+test-autofix.js
+test_piston.js
+test_piston_js.js

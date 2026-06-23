@@ -69,11 +69,13 @@ function ProfileContent() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
+  const [backendOffline, setBackendOffline] = useState(false);
   const { isDark } = useTheme();
 
   const fetchProfile = () => {
     setLoading(true);
     setApiError(false);
+    setBackendOffline(false);
     const token = localStorage.getItem('token');
     if (token?.startsWith('demo-')) {
       setTimeout(() => { setData(DEMO_DATA); setLoading(false); }, 600);
@@ -81,10 +83,22 @@ function ProfileContent() {
     }
     axios.get('/api/profile', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { setData(r.data); setLoading(false); })
-      .catch(() => {
-        // Show real error — don't silently substitute demo data
-        setApiError(true);
-        setData(DEMO_DATA); // still render something so the page isn't blank
+      .catch((err) => {
+        const status = err?.response?.status;
+        const isOffline =
+          // Vite proxy returns 503 with { offline: true } when backend is down
+          status === 503 ||
+          // Direct network error (no proxy, e.g. Electron/production)
+          err?.code === 'ECONNREFUSED' ||
+          err?.code === 'ERR_NETWORK' ||
+          err?.message === 'Network Error';
+
+        if (isOffline) {
+          setBackendOffline(true); // soft notice — backend simply not started
+        } else {
+          setApiError(true);       // real API error (500, 401, etc.)
+        }
+        setData(DEMO_DATA);
         setLoading(false);
       });
   };
@@ -119,7 +133,30 @@ function ProfileContent() {
   return (
     <div className="container" style={{ paddingTop: '2rem', paddingBottom: '3rem', position: 'relative', zIndex: 10 }}>
 
-      {/* API error banner */}
+      {/* Backend offline — soft info notice */}
+      {backendOffline && (
+        <div
+          style={{
+            background: isDark ? 'rgba(99,102,241,0.07)' : 'rgba(79,70,229,0.05)',
+            border: '1px solid rgba(129,140,248,0.25)',
+            borderRadius: 10, padding: '0.65rem 1.25rem', marginBottom: '1.25rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)', fontSize: '0.85rem' }}>
+            <Clock size={15} />
+            <span>Backend is offline — showing demo stats. Start the backend to see your real data.</span>
+          </div>
+          <button
+            onClick={fetchProfile}
+            style={{ background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 6, padding: '0.3rem 0.8rem', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, whiteSpace: 'nowrap', opacity: 0.9 }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* API error banner — real backend error (500, auth failure, etc.) */}
       {apiError && (
         <div
           style={{

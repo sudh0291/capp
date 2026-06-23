@@ -1,4 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity('questions')
 export class Question {
@@ -12,5 +17,7 @@ export class Question {
   @Column('jsonb') testCases: { input: string; expectedOutput: string }[];
   @Column('jsonb', { default: [] }) hints: string[];
   @Column({ default: 45 }) timeLimitMinutes: number;
+  @Column('text', { nullable: true }) solution: string;
+  @Column({ default: false }) used: boolean;
   @CreateDateColumn() createdAt: Date;
 }

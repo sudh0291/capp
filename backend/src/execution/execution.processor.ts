@@ -29,36 +29,52 @@ export class ExecutionProcessor {
     private readonly executionService: ExecutionService,
     private readonly gradingService: GradingService,
     private readonly usersService: UsersService,
-    @InjectRepository(Submission) private readonly submissionsRepo: Repository<Submission>,
+    @InjectRepository(Submission)
+    private readonly submissionsRepo: Repository<Submission>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
   @Process({ name: 'run', concurrency: 5 })
   async handleRun(job: Job): Promise<void> {
     const { submissionId, code, language, question } = job.data;
-    this.logger.log(`[Job ${job.id}] Processing submission ${submissionId} [${language}]`);
+    this.logger.log(
+      `[Job ${job.id}] Processing submission ${submissionId} [${language}]`,
+    );
 
     try {
-      // ── Run Judge0 and Ollama AI grading IN PARALLEL ──────────────────────
+      // ── Run Judge0 and Ollama AI grading IN PARALLEL ────────────────────
       // Total time = max(execution, AI) instead of execution + AI.
       const [executionResults, aiFeedback] = await Promise.all([
-        this.executionService.runAllTestCases(code, language, question.testCases),
-        this.gradingService.analyzeCodePublic(code, language, question.difficulty, question.problemStatement),
+        this.executionService.runAllTestCases(
+          code,
+          language,
+          question.testCases,
+        ),
+        this.gradingService.analyzeCodePublic(
+          code,
+          language,
+          question.difficulty,
+          question.problemStatement,
+        ),
       ]);
 
       // ── Compute final score with real execution results + pre-fetched AI feedback
       const gradeResult = await this.gradingService.gradeWithFeedback(
-        code, language, question.difficulty,
-        question.problemStatement, question.testCases,
-        executionResults, aiFeedback,
+        code,
+        language,
+        question.difficulty,
+        question.problemStatement,
+        question.testCases,
+        executionResults,
+        aiFeedback,
       );
 
       await this.submissionsRepo.update(submissionId, {
         status: SubmissionStatus.COMPLETED,
-        score:       gradeResult.score,
-        passed:      gradeResult.passed,
+        score: gradeResult.score,
+        passed: gradeResult.passed,
         testsPassed: gradeResult.testsPassed,
-        testsTotal:  gradeResult.testsTotal,
+        testsTotal: gradeResult.testsTotal,
         gradeResult: gradeResult as any,
       });
 
@@ -67,24 +83,40 @@ export class ExecutionProcessor {
       try {
         await this.redis.del(`submission:status:${submissionId}`);
       } catch (redisErr: any) {
-        this.logger.warn(`[Job ${job.id}] Redis cache invalidation failed (non-fatal): ${redisErr.message}`);
+        this.logger.warn(
+          `[Job ${job.id}] Redis cache invalidation failed (non-fatal): ${redisErr.message}`,
+        );
       }
 
       // Update student leaderboard stats
-      const sub = await this.submissionsRepo.findOne({ where: { id: submissionId } });
+      const sub = await this.submissionsRepo.findOne({
+        where: { id: submissionId },
+      });
       if (sub) {
-        await this.usersService.updateProgressStats(sub.userId, gradeResult.passed, gradeResult.score);
+        await this.usersService.updateProgressStats(
+          sub.userId,
+          gradeResult.passed,
+          gradeResult.score,
+        );
       }
 
-      this.logger.log(`[Job ${job.id}] Submission ${submissionId} DONE — score: ${gradeResult.score}`);
+      this.logger.log(
+        `[Job ${job.id}] Submission ${submissionId} DONE — score: ${gradeResult.score}`,
+      );
     } catch (err: any) {
-      this.logger.error(`[Job ${job.id}] Submission ${submissionId} FAILED: ${err.message}`);
-      await this.submissionsRepo.update(submissionId, { status: SubmissionStatus.ERROR });
+      this.logger.error(
+        `[Job ${job.id}] Submission ${submissionId} FAILED: ${err.message}`,
+      );
+      await this.submissionsRepo.update(submissionId, {
+        status: SubmissionStatus.ERROR,
+      });
 
       // Invalidate cache so frontend stops polling stale 'running' status
       try {
         await this.redis.del(`submission:status:${submissionId}`);
-      } catch { /* non-fatal */ }
+      } catch {
+        /* non-fatal */
+      }
 
       throw err; // Re-throw so Bull retries with exponential backoff
     }

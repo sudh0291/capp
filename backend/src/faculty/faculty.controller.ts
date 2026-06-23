@@ -1,10 +1,11 @@
 import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { FacultyGuard } from '../common/guards/faculty.guard';
 import { FacultyService } from './faculty.service';
 
 @Controller('api/faculty')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FacultyGuard)
 export class FacultyController {
   constructor(private facultyService: FacultyService) {}
 

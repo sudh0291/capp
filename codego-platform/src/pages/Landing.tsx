@@ -31,7 +31,7 @@ const CODE_PREVIEW = `def two_sum(nums, target):
 const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
 export default function Landing() {
@@ -104,7 +104,7 @@ export default function Landing() {
               borderRadius: 99,
               fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent)',
               letterSpacing: '0.07em', textTransform: 'uppercase',
-              marginBottom: '1.75rem', display: 'inline-flex',
+              marginBottom: '1.75rem',
             }}>
               <GraduationCap size={14} /> Institutional Coding Assessment Platform
             </span>
