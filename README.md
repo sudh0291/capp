@@ -1,4 +1,4 @@
-# Appz - Complete Coding Platform with AI
+# capp - Complete Coding Platform with AI
 
 Welcome to **Appz**, a modern, full-stack coding platform with AI-powered question generation, auto-fix, and grading!
 
