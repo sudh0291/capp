@@ -1,0 +1,52 @@
+name: Selenium E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: cd e2e-selenium-tests && npm install
+
+    - name: Start frontend dev server
+      run: |
+        cd codego-platform
+        npm install
+        npm run dev &
+        # Wait for server to start
+        for i in {1..30}; do
+          if curl -s http://localhost:5173 > /dev/null; then
+            break
+          fi
+          echo "Waiting for server to start..."
+          sleep 2
+        done
+
+    - name: Run Selenium tests
+      run: |
+        cd e2e-selenium-tests
+        node selenium-tests.js
+      env:
+        BASE_URL: http://localhost:5173
+        HEADLESS: true
+
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports
+        path: e2e-selenium-tests/reports/
+        retention-days: 30
