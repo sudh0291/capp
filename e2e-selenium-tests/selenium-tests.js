@@ -5,7 +5,7 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
-// Configuration
+// Configuration - Updated for manual workflow trigger
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 const NUM_TEST_CASES = 50; // Reduced for faster CI runs
 const REPORT_DIR = path.join(__dirname, 'reports');
