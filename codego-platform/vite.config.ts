@@ -22,7 +22,7 @@ export default defineConfig(() => {
     ],
     server: {
       proxy: {
-      '/api': {
+        '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
           timeout: 1200000,
@@ -31,14 +31,12 @@ export default defineConfig(() => {
             // Completely suppress proxy errors when backend isn't running
             proxy.on('error', (err, _req, res) => {
               if ((err as any).code === 'ECONNREFUSED') {
-                if (!(proxy as any).__offlineLogged) {
-                  console.log('[vite] Backend not running — continuing without API');
-                  (proxy as any).__offlineLogged = true;
+                // Do NOT log anything to terminal! Just return 503 to client
+                if (res && 'writeHead' in res && !(res as any).writableEnded) {
+                  (res as any).writeHead(503, { 'Content-Type': 'application/json' });
+                  (res as any).end(JSON.stringify({ offline: true, message: 'Backend not running' }));
                 }
-              }
-              if (res && 'writeHead' in res && !(res as any).writableEnded) {
-                (res as any).writeHead(503, { 'Content-Type': 'application/json' });
-                (res as any).end(JSON.stringify({ offline: true, message: 'Backend not running' }));
+                return;
               }
             });
           },
