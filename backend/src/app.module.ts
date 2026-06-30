@@ -46,8 +46,8 @@ import { AppService } from './app.service';
       // ── Connection Pool Config (per instance) ──────────────────────────────
       poolSize: 5, // PgBouncer handles the rest
       connectTimeoutMS: 5000,
-      retryAttempts: 100, // Keep trying to connect
-      retryDelay: 3000, // Wait 3 seconds retries
+      retryAttempts: 3, // Reduce to 3 attempts
+      retryDelay: 5000, // Wait 5 seconds
       autoLoadEntities: true,
       extra: {
         idleTimeoutMillis: 10000, // faster idle release through bouncer
@@ -70,14 +70,20 @@ import { AppService } from './app.service';
           process.env.BULL_REDIS_PASSWORD ||
           process.env.REDIS_PASSWORD ||
           undefined,
-        maxRetriesPerRequest: 3,
+        maxRetriesPerRequest: 2,
         enableReadyCheck: false,
+        retryStrategy: (times) => {
+          if (times > 2) {
+            return null; // Stop retrying after 2
+          }
+          return 5000;
+        },
       },
       defaultJobOptions: {
-        attempts: 3, // retry a failed job 3 times
-        backoff: { type: 'exponential', delay: 2000 },
-        removeOnComplete: 100, // keep last 100 completed jobs in Redis
-        removeOnFail: 200, // keep last 200 failed jobs for debugging
+        attempts: 2,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: 100,
+        removeOnFail: 200,
       },
     }),
 

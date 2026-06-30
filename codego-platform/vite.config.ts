@@ -28,14 +28,11 @@ export default defineConfig(() => {
           timeout: 1200000,
           proxyTimeout: 1200000,
           configure: (proxy) => {
-            // Suppress ECONNREFUSED spam in the terminal when backend isn't running.
-            // Instead of a crash log, return a clean 503 so the frontend can
-            // detect "backend offline" and fall back to demo data gracefully.
+            // Completely suppress proxy errors when backend isn't running
             proxy.on('error', (err, _req, res) => {
               if ((err as any).code === 'ECONNREFUSED') {
-                // Only log once per session, not for every request
                 if (!(proxy as any).__offlineLogged) {
-                  console.warn('[vite proxy] Backend offline (ECONNREFUSED on localhost:80) — returning 503 to client');
+                  console.log('[vite] Backend not running — continuing without API');
                   (proxy as any).__offlineLogged = true;
                 }
               }

@@ -20,12 +20,18 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379', 10),
           password: process.env.REDIS_PASSWORD || undefined,
-          maxRetriesPerRequest: 3,
+          maxRetriesPerRequest: 2,
           enableReadyCheck: false,
           lazyConnect: true, // Don't block startup if Redis is briefly unavailable
+          retryStrategy: (times) => {
+            if (times > 3) {
+              return null; // Stop retrying after 3 attempts
+            }
+            return 5000; // Wait 5 seconds between retries
+          },
         });
         client.on('error', (err) =>
-          console.error('[RedisClient] Connection error:', err.message),
+          console.log('[RedisClient] Connection error (will retry):', err.message),
         );
         return client;
       },
