@@ -1,6 +1,27 @@
-import { defineConfig } from 'vite'
+import { defineConfig, createLogger, type Logger } from 'vite'
 import react from '@vitejs/plugin-react'
 import electron from 'vite-plugin-electron/simple'
+
+// Custom logger to suppress proxy errors
+const baseLogger = createLogger()
+const customLogger: Logger = {
+  ...baseLogger,
+  info(msg: string, options?: any) {
+    if (!msg.includes('http proxy error')) {
+      baseLogger.info(msg, options)
+    }
+  },
+  warn(msg: string, options?: any) {
+    if (!msg.includes('http proxy error')) {
+      baseLogger.warn(msg, options)
+    }
+  },
+  error(msg: string, options?: any) {
+    if (!msg.includes('http proxy error')) {
+      baseLogger.error(msg, options)
+    }
+  },
+}
 
 // https://vite.dev/config/
 export default defineConfig(() => {
@@ -20,6 +41,7 @@ export default defineConfig(() => {
         // as a standard web application, and we don't need to inject Node.js into it.
       }),
     ],
+    customLogger,
     server: {
       proxy: {
         '/api': {
