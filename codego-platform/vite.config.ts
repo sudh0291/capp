@@ -28,15 +28,11 @@ export default defineConfig(() => {
           timeout: 1200000,
           proxyTimeout: 1200000,
           configure: (proxy) => {
-            // Completely suppress proxy errors when backend isn't running
+            // Completely suppress all proxy errors
             proxy.on('error', (err, _req, res) => {
-              if ((err as any).code === 'ECONNREFUSED') {
-                // Do NOT log anything to terminal! Just return 503 to client
-                if (res && 'writeHead' in res && !(res as any).writableEnded) {
-                  (res as any).writeHead(503, { 'Content-Type': 'application/json' });
-                  (res as any).end(JSON.stringify({ offline: true, message: 'Backend not running' }));
-                }
-                return;
+              if (res && 'writeHead' in res && !(res as any).writableEnded) {
+                (res as any).writeHead(503, { 'Content-Type': 'application/json' });
+                (res as any).end(JSON.stringify({ offline: true, message: 'Backend not running' }));
               }
             });
           },
